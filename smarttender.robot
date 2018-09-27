@@ -1389,8 +1389,8 @@ Ignore error
 
 Відкрити сторінку вимог
   [Arguments]  ${tender_uaid}=None
-  Відкрити сторінку tender  ${tender_uaid}
-  Wait For Loading
+  #Відкрити сторінку tender  ${tender_uaid}
+  #Wait For Loading
   Wait Until Keyword Succeeds  30s  3s  Click Element  xpath=//*[@data-qa='tabs']//span[contains(text(),'Вимоги')]
   Wait Until Page Contains Element  xpath=//*[@data-qa="filter"]  60
 
