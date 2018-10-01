@@ -8,6 +8,7 @@ import urllib2
 import os
 import re
 import requests
+import json
 import ast
 
 
@@ -136,8 +137,8 @@ def tender_field_info(field):
             "dgfID": "css=.page-header h4:nth-of-type(2)",
             "auctionID": "css=.page-header h3:nth-of-type(3)",
             "tenderAttempts": "css=.page-header>div>h4",
-            "procuringEntity.contactPoint.name": "xpath=//*[@data-qa='contact-person']/*[@data-qa='name']/div[2]/span",
-            "procuringEntity.contactPoint.telephone": "xpath=//*[@data-qa='contact-person']/*[@data-qa='phone']/div[2]/a",
+            "procuringEntity.contactPoint.name": "xpath=//*[@data-qa='contactPerson-block']/*[@data-qa='name']/div[2]/span",
+            "procuringEntity.contactPoint.telephone": "xpath=//*[@data-qa='contactPerson-block']/*[@data-qa='phone']/div[2]/a",
             "procuringEntity.identifier.legalName": "xpath=//*[@data-qa='organizer-block']/div[2]/div[2]/span",
             "procuringEntity.identifier.id": "xpath=//*[@data-qa='usreou']/div[2]/span",
             "procuringEntity.contactPoint.url": "css=.info_contact div:nth-child(2)",
@@ -237,6 +238,13 @@ def claim_field_info(field, title):
         "satisfied": u"xpath=//*[contains(text(), 'Участник дал ответ на решение организатора')]/../../..//*[@class='content break-word']",
     }
     return map[field].format(title)
+
+
+def method_type_info(type):
+    map = {
+        "aboveThresholdUA": "xpath=//td[.='Відкриті торги']",
+    }
+    return map[type]
 
 
 def convert_claim_result_from_smarttender(value):
@@ -392,7 +400,10 @@ def convert_unit_to_smarttender_format(unit):
         u"усл.": u"умов.",
         u"метри квадратні": u"м.кв.",
         u"м.кв.": u"м.кв.",
-        u"шт": u"шт"
+        u"шт": u"шт",
+        u"набір": u"набір",
+        u"Флакон": u"флак.",
+        u"упаковка": u"упаков",
     }
     return map[unit]
 
@@ -634,3 +645,8 @@ def get_need_sync_status(value, name):
         return True
     else:
         return True
+
+
+def toJson(dict):
+    return json.dumps(dict)
+

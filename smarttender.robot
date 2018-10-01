@@ -19,7 +19,7 @@ ${iframe}                               jquery=iframe:eq(0)
 ${expand list}                          css=label.tooltip-label
 
 #login
-${open login button}                    id=LoginAnchor
+${open login button}                    //*[@id='LoginAnchor']
 ${login field}                          xpath=(//*[@id="LoginBlock_LoginTb"])[2]
 ${password field}                       xpath=(//*[@id="LoginBlock_PasswordTb"])[2]
 ${remember me}                          xpath=(//*[@id="LoginBlock_RememberMe"])[2]
@@ -70,12 +70,14 @@ ${claim collapse button}                xpath=//span[@class='appeal-expander']
 #webclient
 ${owner change}                         css=[data-name="TBCASE____F4"]
 ${ok add file}                          jquery=span:Contains('ОК'):eq(0)
-${webClient loading}                    id=LoadingPanel
+${webClient loading}                    //*[contains(@class, 'LoadingPanel')]
 ${orenda}                               css=[data-itemkey='438']
 ${create tender}                        css=[data-name="TBCASE____F7"]
 ${add file button}                      css=#cpModalMode div[data-name='BTADDATTACHMENT']
 ${choice file path}                     xpath=//*[@type='file'][1]
 ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]//span[text()='Завантаження документації']
+
+
 
 *** Keywords ***
 ####################################
@@ -85,7 +87,21 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   [Arguments]  ${username}
   [Documentation]  Відкриває переглядач на потрібній сторінці, готує api wrapper, тощо для користувача username.
   Open Browser  ${USERS.users['${username}'].homepage}  ${USERS.users['${username}'].browser}  alias=${browserAlias}
+  Set Window Size  1280  1024
   Run Keyword If  '${username}' != 'SmartTender_Viewer'  Login_  ${username}
+  Run Keyword If  '${username}' == 'SmartTender_Owner'  Перейти в особистий кабінет
+
+
+Перейти в особистий кабінет
+  ${href}  Get Element Attribute  ${open login button}@href
+  Go To  ${href}
+  Дочекатись загрузки сторінки (webclient)
+  Wait Until Keyword Succeeds  120  3  Location Should Contain  /webclient/
+
+Дочекатись загрузки сторінки (webclient)
+  ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Element Is Visible  ${webClient loading}  5
+  Run Keyword If  "${status}" == "PASS"  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  ${webClient loading}  120
+
 
 Підготувати дані для оголошення тендера
   [Arguments]  ${username}  ${tender_data}  ${role_name}
@@ -97,27 +113,45 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   ${tender_data}=  smarttender_service.adapt_data  ${tender_data}
   [Return]  ${tender_data}
 
+Відредагувати Поле
+    [Arguments]  ${filed}  ${value}
+    run keyword  Заповнити ${field} для tender  ${value}
+
+
 Створити тендер
   [Arguments]  ${username}  ${tender_data}
   [Documentation]  Створює лот з початковими даними tender_data.
-  ${items}=                     Get From Dictionary    ${tender_data.data}  items
-  ${procuringEntityName}=       Get From Dictionary    ${tender_data.data.procuringEntity.identifier}  legalName
-  ${title}=                     Get From Dictionary    ${tender_data.data}  title
-  ${description}=               Get From Dictionary    ${tender_data.data}  description
-  ${budget}=                    Get From Dictionary    ${tender_data.data.value}  amount
-  ${budget}=                    Convert To String      ${budget}
-  ${step_rate}=                 Get From Dictionary    ${tender_data.data.minimalStep}  amount
-  ${step_rate}=                 Convert To String      ${step_rate}
+  Відкрити бланк для створення тендера
+  Вибрати тип торгів (процедура)          ${tender_data.data.procurementMethodType}
+  Заповнити legalName для tender          ${tender_data.data.procuringEntity.identifier.legalName}
+  Заповнити title для tender              ${tender_data.data.title}
+  Заповнити description для tender        ${tender_data.data.description}
+  Заповнити amount для tender             ${tender_data.data.value.amount}
+  Заповнити minimalStep для tender        ${tender_data.data.minimalStep.amount}
+  Заповнити valueTAX для tender           ${tender_data.data.value.valueAddedTaxIncluded}
+  Заповнити items для tender              ${tender_data.data['items']}
+
+
+OLD CODE TENDER
+
+  #${items}=                     Get From Dictionary    ${tender_data.data}  items
+  #${procuringEntityName}=       Get From Dictionary    ${tender_data.data.procuringEntity.identifier}  legalName
+  #${title}=                     Get From Dictionary    ${tender_data.data}  title
+  #${description}=               Get From Dictionary    ${tender_data.data}  description
+  #${budget}=                    Get From Dictionary    ${tender_data.data.value}  amount
+  #${budget}=                    Convert To String      ${budget}
+  #${step_rate}=                 Get From Dictionary    ${tender_data.data.minimalStep}  amount
+  #${step_rate}=                 Convert To String      ${step_rate}
   # Для фіксування кроку аукціону при зміні початковой вартості лоту
-  set global variable           ${step_rate}
-  ${valTax}=                    Get From Dictionary    ${tender_data.data.value}  valueAddedTaxIncluded
-  ${guarantee_amount}=          Get From Dictionary    ${tender_data.data.guarantee}  amount
-  ${guarantee_amount}=          Convert To String      ${guarantee_amount}
-  ${dgfID}=                     Get From Dictionary    ${tender_data.data}  dgfID
-  ${minNumberOfQualifiedBids}=  Get From Dictionary    ${tender_data.data}  minNumberOfQualifiedBids
-  ${auction_start}=             Get From Dictionary    ${tender_data.data.auctionPeriod}  startDate
-  ${auction_start}=             smarttender_service.convert_datetime_to_smarttender_format  ${auction_start}
-  ${tenderAttempts}=            Get From Dictionary    ${tender_data.data}  tenderAttempts
+  #set global variable           ${step_rate}
+  #${valTax}=                    Get From Dictionary    ${tender_data.data.value}  valueAddedTaxIncluded
+  #${guarantee_amount}=          Get From Dictionary    ${tender_data.data.guarantee}  amount
+  #${guarantee_amount}=          Convert To String      ${guarantee_amount}
+  #${dgfID}=                     Get From Dictionary    ${tender_data.data}  dgfID
+  #${minNumberOfQualifiedBids}=  Get From Dictionary    ${tender_data.data}  minNumberOfQualifiedBids
+  #${auction_start}=             Get From Dictionary    ${tender_data.data.auctionPeriod}  startDate
+  #${auction_start}=             smarttender_service.convert_datetime_to_smarttender_format  ${auction_start}
+  #${tenderAttempts}=            Get From Dictionary    ${tender_data.data}  tenderAttempts
   Run Keyword And Ignore Error  Wait Until Page Contains element  id=IMMessageBoxBtnNo_CD
   Run Keyword And Ignore Error  Click Element  id=IMMessageBoxBtnNo_CD
   Wait Until Page Contains element  ${orenda}  ${wait}
@@ -186,18 +220,160 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   ${return_value}  Get Text  xpath=(//div[@data-placeid='TENDER']//a[text()])[1]
   [Return]  ${return_value}
 
+Відкрити бланк для створення тендера
+  Перейти у розділ публічні закупівлі
+  Натиснути пункт додати тендер
+
+
+Вибрати тип торгів (процедура)
+  [Arguments]  ${value}
+  Click Element  xpath=//*[@data-name="KDM2"]//*[contains(@class,'Button')]
+  ${selector}  method_type_info  ${value}
+  Wait Until Keyword Succeeds  10  2  Click Element  ${selector}
+  Sleep  1
+
+
+Перейти у розділ публічні закупівлі
+  Click Element  xpath=//*[@title="Публічні закупівлі"]
+  Дочекатись Загрузки Сторінки (webclient)
+
+
+Натиснути пункт додати тендер
+  Click Element  xpath=//*[contains(@title, 'Додати')]
+  Дочекатись Загрузки Сторінки (webclient)
+  Wait Until Element Is Visible  //*[contains(@class, 'activeTab')]//*[contains(text(),'Тендер')]
+
+
+Заповнити legalName для tender
+  [Arguments]  ${value}
+  ${selector}  Set Variable  xpath=(//*[@data-name="ORG_GPO_2"]//input)[1]
+  Input Text  ${selector}  ${value}
+  Press Key  ${selector}  \\09
+  sleep  1  #don't touch
+  Дочекатись Загрузки Сторінки (webclient)
+  Press Key  ${selector}  \\13
+  Дочекатись Загрузки Сторінки (webclient)
+
+
+Заповнити title для tender
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="TITLE"]//input  ${value}
+
+
+Заповнити description для tender
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="DESCRIPT"]//textarea  ${value}
+
+
+Заповнити amount для tender
+  [Arguments]  ${value}
+  ${step_rate}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="INITAMOUNT"]//input   ${step_rate}
+  Set Global Variable   ${step_rate}
+
+
+Заповнити minimalStep для tender
+  [Arguments]  ${value}
+  ${value}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="MINSTEP_PERCENT"]//input  ${value}
+
+
+Заповнити valueTAX для tender
+  [Arguments]  ${value}
+  Run Keyword If  '${value}' == 'True'  Click Element  xpath=(//*[@data-name="WITHVAT"]//span)[1]
+
+Заповнити items для tender
+  [Arguments]  ${items}
+  ${index}  Set Variable  ${0}
+  log  ${items}
+  :FOR  ${item}  in  @{items}
+  \  Run Keyword If  '${index}' != '0'  Click Element  xpath=(//*[@title="Додати"])[2]
+  \  smarttender.Додати предмет в тендер_  ${item}
+  \  ${index}  Set Variable  ${index + 1}
+
+
+
 Додати предмет в тендер_
   [Arguments]  ${item}
-  ${description}=                 Get From Dictionary    ${item}  description
-  ${quantity}=                    Get From Dictionary    ${item}  quantity
-  ${quantity}=                    Convert To String      ${quantity}
-  ${cpv}=                         Get From Dictionary    ${item.classification}  id
-  ${cpv/cav}=                     Get From Dictionary    ${item.classification}  scheme
-  ${unit}=                        Get From Dictionary    ${item.unit}  name
-  ${unit}=                        smarttender_service.convert_unit_to_smarttender_format  ${unit}
-  ${postalCode}                   Get From Dictionary    ${item.deliveryAddress}  postalCode
-  ${locality}=                    Get From Dictionary    ${item.deliveryAddress}  locality
-  ${streetAddress}                Get From Dictionary    ${item.deliveryAddress}  streetAddress
+  Заповнити description для item             ${item.description}
+  Заповнити quantity для item                ${item.quantity}
+  Заповнити id для item                      ${item.classification.id}
+  Заповнити scheme для item                  ${item.classification.scheme}
+  Заповнити unit.name для item               ${item.unit.name}
+  Заповнити postalCode для item              ${item.deliveryAddress.postalCode}
+  Заповнити streetAddress для item           ${item.deliveryAddress.streetAddress}
+  debug
+
+
+
+
+Заповнити description для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=(//*[@data-name='KMAT']//input)[1]  ${value}
+
+
+Заповнити quantity для item
+  [Arguments]  ${value}
+  ${value}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name='QUANTITY']//input  ${value}
+
+
+Заповнити id для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='MAINCLASSIFICATION']//input[not(contains(@type,'hidden'))]  ${value}
+
+
+Заповнити scheme для item
+  [Arguments]  ${value}
+  Run Keyword If  '${value}' == 'ДК021'  No Operation
+  ...  ELSE  Run Keywords
+  ...  Log To Console  'Заповнити scheme для item'
+  ...  AND  debug
+
+Заповнити unit.name для item
+  [Arguments]  ${value}
+  ${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
+  Log to console  ${value}
+  Заповнити Поле  xpath=//*[@data-name='EDI']//input[not(contains(@type,'hidden'))]  ${value}
+
+
+Заповнити postalCode для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='POSTALCODE']//input  ${value}
+
+
+Заповнити locality для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='CITY_KOD']//input[not(contains(@type,'hidden'))]  ${value}
+
+
+Заповнити streetAddress для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='STREETADDR']//input  ${value}
+
+
+
+
+
+
+
+Заповнити Поле
+  [Arguments]  ${selector}  ${value}
+  Input Text  ${selector}  ${value}
+  Press Key  ${selector}  \\13
+  Sleep  .5
+
+OLD CODE ITEMS
+  #${description}=                 Get From Dictionary    ${item}  description
+  #${quantity}=                    Get From Dictionary    ${item}  quantity
+  #${quantity}=                    Convert To String      ${quantity}
+  #${cpv}=                         Get From Dictionary    ${item.classification}  id
+  #${cpv/cav}=                     Get From Dictionary    ${item.classification}  scheme
+  #${unit}=                        Get From Dictionary    ${item.unit}  name
+  #${unit}=                        smarttender_service.convert_unit_to_smarttender_format  ${unit}
+  #${postalCode}                   Get From Dictionary    ${item.deliveryAddress}  postalCode
+  #${locality}=                    Get From Dictionary    ${item.deliveryAddress}  locality
+  #${streetAddress}                Get From Dictionary    ${item.deliveryAddress}  streetAddress
   ${latitude}                     Get From Dictionary    ${item.deliveryLocation}  latitude
   ${latitude}=                    Convert To String      ${latitude}
   ${longitude}                    Get From Dictionary    ${item.deliveryLocation}  longitude
@@ -215,6 +391,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   # Од. вим.
   Click Input Enter Wait  css=#cpModalMode div[data-name='EDI'] input[type=text]:nth-child(1)  ${unit}
   # Дата договору з
+
   Click Input Enter Wait  css=[data-name="CONTRFROM"] input  ${contractPeriodendDate}
   # по
   Click Input Enter Wait  css=[data-name="CONTRTO"] input  ${contractPeriodendDate}
@@ -231,6 +408,8 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Click Input Enter Wait  css=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:nth-child(1)  ${locality}
   Click Input Enter Wait  css=#cpModalMode table[data-name='LATITUDE'] input  ${latitude}
   Click Input Enter Wait  css=#cpModalMode table[data-name='LONGITUDE'] input  ${longitude}
+
+
 
 Заповнити поле з ціною власником_
   [Arguments]  ${value}
@@ -1644,6 +1823,7 @@ Ignore error
   Wait Until Keyword Succeeds  1m  5  Run Keywords
   ...  Input Text  xpath=//*[@data-qa="cancel-reason"]//input  ${cancellationReason}
   ...  AND  Click Element  xpath=//*[@data-qa="cancel-modal-submit"]
+  ...  AND  debug  #TODO убрать дебаг
   ...  AND  Wait For Loading
   ...  AND  Wait Until Element Is Not Visible   xpath=//*[@data-qa="cancel-modal-submit"]
   Відкрити сторінку tender
