@@ -242,7 +242,7 @@ def claim_field_info(field, title):
 
 def method_type_info(type):
     map = {
-        "aboveThresholdUA": "xpath=//td[.='Відкриті торги']",
+        "aboveThresholdUA": u"Відкриті торги",
     }
     return map[type]
 
@@ -404,6 +404,9 @@ def convert_unit_to_smarttender_format(unit):
         u"набір": u"набір",
         u"Флакон": u"флак.",
         u"упаковка": u"упаков",
+        u"штуки": u"штуки",
+        u"лот": u"лот",
+        u"кг": u"кг",
     }
     return map[unit]
 

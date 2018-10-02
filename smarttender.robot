@@ -78,8 +78,9 @@ ${choice file path}                     xpath=//*[@type='file'][1]
 ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]//span[text()='Завантаження документації']
 
 
-
 *** Keywords ***
+
+
 ####################################
 #        Операції з лотом          #
 ####################################
@@ -113,23 +114,322 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   ${tender_data}=  smarttender_service.adapt_data  ${tender_data}
   [Return]  ${tender_data}
 
-Відредагувати Поле
-    [Arguments]  ${filed}  ${value}
-    run keyword  Заповнити ${field} для tender  ${value}
-
 
 Створити тендер
   [Arguments]  ${username}  ${tender_data}
   [Documentation]  Створює лот з початковими даними tender_data.
   Відкрити бланк для створення тендера
-  Вибрати тип торгів (процедура)          ${tender_data.data.procurementMethodType}
-  Заповнити legalName для tender          ${tender_data.data.procuringEntity.identifier.legalName}
-  Заповнити title для tender              ${tender_data.data.title}
-  Заповнити description для tender        ${tender_data.data.description}
-  Заповнити amount для tender             ${tender_data.data.value.amount}
-  Заповнити minimalStep для tender        ${tender_data.data.minimalStep.amount}
-  Заповнити valueTAX для tender           ${tender_data.data.value.valueAddedTaxIncluded}
-  Заповнити items для tender              ${tender_data.data['items']}
+  Вибрати тип торгів (процедура)             ${tender_data.data.procurementMethodType}
+  Заповнити legalName для tender             ${tender_data.data.procuringEntity.identifier.legalName}
+  Заповнити title для tender                 ${tender_data.data.title}
+  Заповнити description для tender           ${tender_data.data.description}
+  Заповнити amount для tender                ${tender_data.data.value.amount}
+  Заповнити minimalStep для tender           ${tender_data.data.minimalStep.amount}
+  Заповнити valueTAX для tender              ${tender_data.data.value.valueAddedTaxIncluded}
+  Заповнити endDate для tender               ${tender_data.data.tenderPeriod.endDate}
+  debug
+  Заповнити items для tender                 ${tender_data.data['items']}
+  Заповнити features для tender              ${tender_data.data['features']}
+  Додати документ до тендара власником
+  Натиснути додати тендер
+  Оголосити закупівлю
+  debug
+
+
+
+Додати предмет в тендер_
+  [Arguments]  ${item}
+  Заповнити description для item             ${item.description}
+  Заповнити quantity для item                ${item.quantity}
+  Заповнити id для item                      ${item.classification.id}
+  Заповнити scheme для item                  ${item.classification.scheme}
+  Заповнити unit.name для item               ${item.unit.name}
+  Заповнити postalCode для item              ${item.deliveryAddress.postalCode}
+  Заповнити streetAddress для item           ${item.deliveryAddress.streetAddress}
+  Заповнити locality для item                ${item.deliveryAddress.locality}
+  Заповнити endDate для item                 ${item.deliveryDate.endDate}
+  Заповнити startDate для item               ${item.deliveryDate.startDate}
+
+
+Додати неціновий показник
+  [Arguments]  ${feature}
+  Заповнити title для feature                ${feature.title}
+  Заповнити description для feature          ${feature.description}
+  Заповнити featureOf для feature            ${feature.featureOf}
+  Заповнити enum для featureOf               ${feature['enum']}
+
+
+Додати Значення Критерію
+  [Arguments]  ${enum}  ${index}
+  Заповнити title для enum                   ${enum.title}  ${index}
+  Заповнити value для enum                   ${enum.value}  ${index}
+
+
+Заповнити description для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=(//*[@data-name='KMAT']//input)[1]  ${value}
+
+
+Заповнити quantity для item
+  [Arguments]  ${value}
+  ${value}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name='QUANTITY']//input  ${value}
+
+
+Заповнити id для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='MAINCLASSIFICATION']//input[not(contains(@type,'hidden'))]  ${value}
+
+
+Заповнити scheme для item
+  [Arguments]  ${value}
+  Run Keyword If  '${value}' == 'ДК021'  No Operation
+  ...  ELSE  Run Keywords
+  ...  Log To Console  'Заповнити scheme для item'
+  ...  AND  debug
+
+
+Заповнити unit.name для item
+  [Arguments]  ${value}
+  ${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
+  Log to console  ${value}
+  Заповнити Поле  xpath=//*[@data-name='EDI']//input[not(contains(@type,'hidden'))]  ${value}
+
+
+Заповнити postalCode для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='POSTALCODE']//input  ${value}
+
+
+Заповнити streetAddress для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='STREETADDR']//input  ${value}
+
+
+Заповнити locality для item
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name='CITY_KOD']//input[not(contains(@type,'hidden'))]  ${value}
+
+
+Заповнити endDate для item
+  [Arguments]  ${value}
+  ${value}  smarttender_service.convert_datetime_to_smarttender_form  ${value}
+  Заповнити Поле  xpath=//*[@data-name="DDATETO"]//input  ${value}
+
+
+Заповнити startDate для item
+  [Arguments]  ${value}
+  ${value}  smarttender_service.convert_datetime_to_smarttender_form  ${value}
+  Заповнити Поле  xpath=//*[@data-name="DDATEFROM"]//input  ${value}
+
+
+Додати документ до тендара власником
+  Перейти на вкладку документи
+  Додати документ власником
+
+
+Натиснути додати тендер
+  Click Element  xpath=//*[@data-name="OkButton"]
+  Дочекатись Загрузки Сторінки (webclient)
+
+
+Оголосити закупівлю
+  Wait Until Page Contains  Оголосити закупівлю
+  Click Element  xpath=//*[@class="message-box"]//*[.='Так']
+  Дочекатись Загрузки Сторінки (webclient)
+
+
+Перейти на вкладку документи
+  Click Element  xpath=//*[contains(@id,'TabControl_T4T')]//*[contains(text(),'Документи')]
+  Wait Until Page Contains Element  xpath=//*[@data-name="ADDATTACHMENT_L"]
+
+
+Додати документ власником
+  Click Element  xpath=//*[@data-name="BTADDATTACHMENT"]
+  Дочекатись Загрузки Сторінки (webclient)
+  Wait Until Page Contains Element  xpath=//*[@type='file'][1]
+  ${doc}=  create_fake_doc
+  ${path}  Set Variable  ${doc[0]}
+  ${name}  Set Variable  ${doc[1]}
+  Choose File  xpath=//*[@type='file'][1]  ${path}
+  Click Element  xpath=(//span[.='ОК'])[1]
+  Дочекатись Загрузки Сторінки (webclient)
+  Page Should Contain  ${name}
+
+
+Відкрити бланк для створення тендера
+  Перейти у розділ публічні закупівлі
+  Натиснути пункт додати тендер
+
+
+Вибрати тип торгів (процедура)
+  [Arguments]  ${value}
+  log  ${value}
+  ${value}  method_type_info  ${value}
+  ${selector}  Set Variable  xpath=//td[contains(@class,'Box') and .='${value}']
+  Click Element  xpath=(//*[@data-name="KDM2"]//input)[2]
+  Wait Until Element Is Visible  ${selector}
+  Click Element  ${selector}
+  Sleep  1
+
+
+Перейти у розділ публічні закупівлі
+  Click Element  xpath=//*[@title="Публічні закупівлі"]
+  Дочекатись Загрузки Сторінки (webclient)
+
+
+Натиснути пункт додати тендер
+  Click Element  xpath=//*[contains(@title, 'Додати')]
+  Дочекатись Загрузки Сторінки (webclient)
+  Wait Until Element Is Visible  //*[contains(@class, 'activeTab')]//*[contains(text(),'Тендер')]
+
+
+Заповнити legalName для tender
+  [Arguments]  ${value}
+  ${selector}  Set Variable  xpath=(//*[@data-name="ORG_GPO_2"]//input)[1]
+  Input Text  ${selector}  ${value}
+  Press Key  ${selector}  \\09
+  sleep  1  #don't touch
+  Дочекатись Загрузки Сторінки (webclient)
+  Press Key  ${selector}  \\13
+  Дочекатись Загрузки Сторінки (webclient)
+
+
+Заповнити title для tender
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="TITLE"]//input  ${value}
+
+
+Заповнити description для tender
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="DESCRIPT"]//textarea  ${value}
+
+
+Заповнити amount для tender
+  [Arguments]  ${value}
+  ${step_rate}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="INITAMOUNT"]//input   ${step_rate}
+  Set Global Variable   ${step_rate}
+
+
+Заповнити minimalStep для tender
+  [Arguments]  ${value}
+  ${value}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="MINSTEP"]//input  ${value}
+
+
+Заповнити valueTAX для tender
+  [Arguments]  ${value}
+  Run Keyword If  '${value}' == 'True'  Click Element  xpath=(//*[@data-name="WITHVAT"]//span)[1]
+
+
+Заповнити endDate для tender
+  [Arguments]  ${value}
+  ${value}  smarttender_service.convert_datetime_to_smarttender_form  ${value}
+  Заповнити Поле  xpath=//*[@data-name="D_SROK"]//input  ${value}
+
+
+Заповнити items для tender
+  [Arguments]  ${items}
+  log  ${items}
+  ${index}  Set Variable  ${0}
+  :FOR  ${item}  in  @{items}
+  \  Run Keyword If  '${index}' != '0'  Click Element  xpath=(//*[@title="Додати"])[2]
+  \  smarttender.Додати предмет в тендер_  ${item}
+  \  ${index}  Set Variable  ${index + 1}
+
+Заповнити features для tender
+  [Arguments]  ${features}
+  log  ${features}
+  :FOR  ${feature}  in  @{features}
+  \  Перейти на вкладку якісних показників
+  \  Exit For Loop
+  :FOR  ${feature}  in  @{features}
+  \  Відкрити бланк для додавання якісних показників
+  \  Sleep  1
+  \  Додати неціновий показник  ${feature}
+
+
+
+# FEATURE
+Заповнити title для feature
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="CRITERIONNAME"]//input  ${value}
+
+
+Заповнити description для feature
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="CRITERIONDESCRIPTION"]//textarea  ${value}
+
+
+Заповнити featureOf для feature
+  [Arguments]  ${featureOf}
+  log  ${featureOf}
+  Run Keyword If  '${featureOf}' == 'lot'  Заповнити рівень привязки  Учасник тендеру
+  Run Keyword If  '${featureOf}' == 'tenderer'  Заповнити рівень привязки  Учасник тендеру
+  Run Keyword If  '${featureOf}' == 'item'  Заповнити рівень привязки  Номенклатура
+
+Заповнити рівень привязки
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=(//*[@data-name="CRITERIONBINDINGLEVEL"]//td)[2]/input  ${value}
+
+Заповнити enum для featureOf
+  [Arguments]  ${enums}
+  log  ${enums}
+  ${index}  Set Variable  ${1}
+  :FOR  ${enum}  in  @{enums}
+  \  Відкрити бланк для додавання значення критерію
+  \  Додати значення критерію  ${enum}  ${index}
+  \  ${index}  Set Variable  ${index + 1}
+
+
+Заповнити title для enum
+  [Arguments]  ${value}  ${index}
+  ${selector}  Set Variable  xpath=(//*[@data-name="GRID_CRITERIONVALUES"]//table[contains(@class,'obj')]//td[2])[${index}]
+  Click Element  ${selector}
+  Sleep  .3
+  Click Element  ${selector}
+  Заповнити Поле  ${selector}/input  ${value}
+
+
+Заповнити value для enum
+  [Arguments]  ${value}  ${index}
+  ${value}  Convert To String  ${value}
+  ${selector}  Set Variable  xpath=(//*[@data-name="GRID_CRITERIONVALUES"]//table[contains(@class,'obj')]//td[4])[${index}]
+  Click Element  ${selector}
+  Sleep  .3
+  Click Element  ${selector}
+  Заповнити Поле  ${selector}/input  ${value}
+
+
+Відкрити бланк для додавання значення критерію
+  Wait Until Keyword Succeeds  10  2  Click Element  xpath=//*[@data-name="GRID_CRITERIONVALUES"]//*[@title='Додати']
+  Wait Until Page Contains Element  xpath=//*[@data-name="GRID_CRITERIONVALUES"]//td[@class="cellselected"]
+
+
+Перейти на вкладку якісних показників
+  Scroll Page To Element XPATH  xpath=(//*[@data-name="ISCRITERIA"]//span)[1]
+  Click Element  xpath=(//*[@data-name="ISCRITERIA"]//span)[1]
+  Wait Until Keyword Succeeds  10  2  Click Element  xpath=//*[contains(@id,'TabControl_T1')]//*[contains(text(),'Якісні показники')]
+  Дочекатись Загрузки Сторінки (webclient)
+
+
+Відкрити бланк для додавання якісних показників
+  Wait Until Keyword Succeeds  10  2  Click Element  xpath=//*[@data-name="GRID_CRITERIA"]//*[@title="Додати"]
+  Wait Until Page Contains Element  xpath=//*[@data-name="GRID_CRITERIA"]//tr[contains(@class,'selected')]
+
+
+
+
+Заповнити Поле
+  [Arguments]  ${selector}  ${value}
+  Wait Until Page Contains Element  ${selector}
+  Sleep  .3
+  Input Text  ${selector}  ${value}
+  Sleep  .3
+  Press Key  ${selector}  \\13
+  Wait Until Element Is Not Visible  ${webClient loading}  ${wait}
+  Sleep  .3
 
 
 OLD CODE TENDER
@@ -220,148 +520,6 @@ OLD CODE TENDER
   ${return_value}  Get Text  xpath=(//div[@data-placeid='TENDER']//a[text()])[1]
   [Return]  ${return_value}
 
-Відкрити бланк для створення тендера
-  Перейти у розділ публічні закупівлі
-  Натиснути пункт додати тендер
-
-
-Вибрати тип торгів (процедура)
-  [Arguments]  ${value}
-  Click Element  xpath=//*[@data-name="KDM2"]//*[contains(@class,'Button')]
-  ${selector}  method_type_info  ${value}
-  Wait Until Keyword Succeeds  10  2  Click Element  ${selector}
-  Sleep  1
-
-
-Перейти у розділ публічні закупівлі
-  Click Element  xpath=//*[@title="Публічні закупівлі"]
-  Дочекатись Загрузки Сторінки (webclient)
-
-
-Натиснути пункт додати тендер
-  Click Element  xpath=//*[contains(@title, 'Додати')]
-  Дочекатись Загрузки Сторінки (webclient)
-  Wait Until Element Is Visible  //*[contains(@class, 'activeTab')]//*[contains(text(),'Тендер')]
-
-
-Заповнити legalName для tender
-  [Arguments]  ${value}
-  ${selector}  Set Variable  xpath=(//*[@data-name="ORG_GPO_2"]//input)[1]
-  Input Text  ${selector}  ${value}
-  Press Key  ${selector}  \\09
-  sleep  1  #don't touch
-  Дочекатись Загрузки Сторінки (webclient)
-  Press Key  ${selector}  \\13
-  Дочекатись Загрузки Сторінки (webclient)
-
-
-Заповнити title для tender
-  [Arguments]  ${value}
-  Заповнити Поле  xpath=//*[@data-name="TITLE"]//input  ${value}
-
-
-Заповнити description для tender
-  [Arguments]  ${value}
-  Заповнити Поле  xpath=//*[@data-name="DESCRIPT"]//textarea  ${value}
-
-
-Заповнити amount для tender
-  [Arguments]  ${value}
-  ${step_rate}  Convert To String  ${value}
-  Заповнити Поле  xpath=//*[@data-name="INITAMOUNT"]//input   ${step_rate}
-  Set Global Variable   ${step_rate}
-
-
-Заповнити minimalStep для tender
-  [Arguments]  ${value}
-  ${value}  Convert To String  ${value}
-  Заповнити Поле  xpath=//*[@data-name="MINSTEP_PERCENT"]//input  ${value}
-
-
-Заповнити valueTAX для tender
-  [Arguments]  ${value}
-  Run Keyword If  '${value}' == 'True'  Click Element  xpath=(//*[@data-name="WITHVAT"]//span)[1]
-
-Заповнити items для tender
-  [Arguments]  ${items}
-  ${index}  Set Variable  ${0}
-  log  ${items}
-  :FOR  ${item}  in  @{items}
-  \  Run Keyword If  '${index}' != '0'  Click Element  xpath=(//*[@title="Додати"])[2]
-  \  smarttender.Додати предмет в тендер_  ${item}
-  \  ${index}  Set Variable  ${index + 1}
-
-
-
-Додати предмет в тендер_
-  [Arguments]  ${item}
-  Заповнити description для item             ${item.description}
-  Заповнити quantity для item                ${item.quantity}
-  Заповнити id для item                      ${item.classification.id}
-  Заповнити scheme для item                  ${item.classification.scheme}
-  Заповнити unit.name для item               ${item.unit.name}
-  Заповнити postalCode для item              ${item.deliveryAddress.postalCode}
-  Заповнити streetAddress для item           ${item.deliveryAddress.streetAddress}
-  debug
-
-
-
-
-Заповнити description для item
-  [Arguments]  ${value}
-  Заповнити Поле  xpath=(//*[@data-name='KMAT']//input)[1]  ${value}
-
-
-Заповнити quantity для item
-  [Arguments]  ${value}
-  ${value}  Convert To String  ${value}
-  Заповнити Поле  xpath=//*[@data-name='QUANTITY']//input  ${value}
-
-
-Заповнити id для item
-  [Arguments]  ${value}
-  Заповнити Поле  xpath=//*[@data-name='MAINCLASSIFICATION']//input[not(contains(@type,'hidden'))]  ${value}
-
-
-Заповнити scheme для item
-  [Arguments]  ${value}
-  Run Keyword If  '${value}' == 'ДК021'  No Operation
-  ...  ELSE  Run Keywords
-  ...  Log To Console  'Заповнити scheme для item'
-  ...  AND  debug
-
-Заповнити unit.name для item
-  [Arguments]  ${value}
-  ${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
-  Log to console  ${value}
-  Заповнити Поле  xpath=//*[@data-name='EDI']//input[not(contains(@type,'hidden'))]  ${value}
-
-
-Заповнити postalCode для item
-  [Arguments]  ${value}
-  Заповнити Поле  xpath=//*[@data-name='POSTALCODE']//input  ${value}
-
-
-Заповнити locality для item
-  [Arguments]  ${value}
-  Заповнити Поле  xpath=//*[@data-name='CITY_KOD']//input[not(contains(@type,'hidden'))]  ${value}
-
-
-Заповнити streetAddress для item
-  [Arguments]  ${value}
-  Заповнити Поле  xpath=//*[@data-name='STREETADDR']//input  ${value}
-
-
-
-
-
-
-
-Заповнити Поле
-  [Arguments]  ${selector}  ${value}
-  Input Text  ${selector}  ${value}
-  Press Key  ${selector}  \\13
-  Sleep  .5
 
 OLD CODE ITEMS
   #${description}=                 Get From Dictionary    ${item}  description
@@ -408,7 +566,6 @@ OLD CODE ITEMS
   Click Input Enter Wait  css=#cpModalMode div[data-name='CITY_KOD'] input[type=text]:nth-child(1)  ${locality}
   Click Input Enter Wait  css=#cpModalMode table[data-name='LATITUDE'] input  ${latitude}
   Click Input Enter Wait  css=#cpModalMode table[data-name='LONGITUDE'] input  ${longitude}
-
 
 
 Заповнити поле з ціною власником_
