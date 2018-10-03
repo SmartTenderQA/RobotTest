@@ -127,14 +127,12 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Заповнити minimalStep для tender           ${tender_data.data.minimalStep.amount}
   Заповнити valueTAX для tender              ${tender_data.data.value.valueAddedTaxIncluded}
   Заповнити endDate для tender               ${tender_data.data.tenderPeriod.endDate}
-  debug
   Заповнити items для tender                 ${tender_data.data['items']}
   Заповнити features для tender              ${tender_data.data['features']}
   Додати документ до тендара власником
   Натиснути додати тендер
   Оголосити закупівлю
   debug
-
 
 
 Додати предмет в тендер_
@@ -234,9 +232,36 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 
 Оголосити закупівлю
+  debug
   Wait Until Page Contains  Оголосити закупівлю
   Click Element  xpath=//*[@class="message-box"]//*[.='Так']
   Дочекатись Загрузки Сторінки (webclient)
+  Підтвердити повідомлення про перевищення бюджету за необхідністю
+  Підтвердити повідомлення про перевірку публікації документу за необхідністю
+  Відмовитись у повідомленні про накладання ЕЦП на тендер
+
+
+Підтвердити повідомлення про перевищення бюджету за необхідністю
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains  Увага! Бюджет перевищує
+  Run Keyword If  '${status}' == 'True'  Run Keywords
+  ...  Click Element  xpath=//*[@class="message-box"]//*[.='Так']
+  ...  AND  Дочекатись Загрузки Сторінки (webclient)
+
+
+Підтвердити повідомлення про перевірку публікації документу за необхідністю
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains  перевірте публікацію Вашого документу
+  Run Keyword If  '${status}' == 'True'  Run Keywords
+  ...  Click Element  xpath=//*[@title="OK"]
+  ...  AND  Дочекатись Загрузки Сторінки (webclient)
+
+Відмовитись у повідомленні про накладання ЕЦП на тендер
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains  Накласти ЕЦП на тендер?
+  Run Keyword If  '${status}' == 'True'  Run Keywords
+  ...  Click Element  xpath=//*[@class="message-box"]//*[.='Ні']
+  ...  AND  Дочекатись Загрузки Сторінки (webclient)
+
+
+
 
 
 Перейти на вкладку документи
@@ -325,7 +350,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 Заповнити endDate для tender
   [Arguments]  ${value}
-  ${value}  smarttender_service.convert_datetime_to_smarttender_form  ${value}
+  ${value}  smarttender_service.convert_datetime_to_smarttender_format  ${value}
   Заповнити Поле  xpath=//*[@data-name="D_SROK"]//input  ${value}
 
 
@@ -704,6 +729,7 @@ waiting_for_synch
   [Arguments]  ${field_name}  ${feature_id}
   Reload Page
   ${selector}  non_price_field_info  ${field_name}  ${feature_id}
+  Scroll Page To Element XPATH  ${selector}
   ${value}=  Get Text  ${selector}
   ${ret}  convert_result  ${field_name}  ${value}
   [Return]  ${ret}
@@ -870,6 +896,7 @@ Get title by lotid
   ...  [Повертає] document['field'] (значення поля field)
   Відкрити сторінку  tender  ${tender_uaid}
   ${selector}=  document_fields_info  ${field}  ${doc_id}
+  Scroll Page To Element XPATH  ${selector}
   ${result}  Get Text  ${selector}
   [Return]  ${result}
 
@@ -934,6 +961,7 @@ Get title by lotid
 Отримати та обробити дані із предмету
   [Arguments]  ${fieldname}  ${id}
   ${selector}  item_field_info  ${fieldname}  ${id}
+  Scroll Page To Element XPATH  ${selector}
   ${value}=  Get Text  ${selector}
   ${length}  Get Length  ${value}
   Run Keyword If  ${length} == 0  Capture Page Screenshot  ${OUTPUTDIR}/my_screen{index}.png
@@ -988,10 +1016,12 @@ Get title by lotid
   ...  [Повертає] question['field_name'] (значення поля).
   Відкрити вкладку із запитаннями
   ${selector}=  question_field_info  ${field}  ${objectId}
+  Scroll Page To Element XPATH  ${selector}
   ${status}  Run Keyword And Return Status  Get Text  ${selector}
   Run Keyword If  '${status}' == 'False'  Run Keywords
   ...  Виконати синхронізацію з майданчиком
   ...  AND  Відкрити вкладку із запитаннями
+  Scroll Page To Element XPATH  ${selector}
   ${ret}  Get Text  ${selector}
   Закрити вкладку із запитаннями
   [Return]  ${ret}
@@ -1461,6 +1491,7 @@ Click Input Enter Wait
   [Arguments]  ${fieldname}  ${id}
   ${selector}  lot_field_info  ${fieldname}  ${id}
   Set Window Size  1280  1024
+  Scroll Page To Element XPATH  ${selector}
   ${value}=  Get Text  ${selector}
   ${length}  Get Length  ${value}
   Run Keyword If  ${length} == 0  Capture Page Screenshot  ${OUTPUTDIR}/my_screen{index}.png
@@ -1693,7 +1724,7 @@ Ignore error
   Run Keyword If  '${status}' == 'False'  Run Keywords
   ...  Оновити сторінку вимог
   ...  AND  Розгорнути потрібну скаргу  ${title}
-  ...  ELSE  Scroll Page To Element XPATH  ${selector}
+  Scroll Page To Element XPATH  ${selector}
   ${value}  Get Text  ${selector}
   ${response}  convert_claim_result_from_smarttender  ${value}
   [Return]  ${response}
@@ -1712,6 +1743,7 @@ Ignore error
   ${title}  Отримати title по complaintID із ЦБД  ${complaintID}  0
   Розгорнути потрібну скаргу  ${title}
   ${selector}  claim_file_field_info  ${field_name}  ${doc_id}
+  Scroll Page To Element XPATH  ${selector}
   ${response}  Get Text  ${selector}
   [Return]  ${response}
 
