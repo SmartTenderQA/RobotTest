@@ -132,7 +132,6 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Додати документ до тендара власником
   Натиснути додати тендер
   Оголосити закупівлю
-  debug
 
 
 Додати предмет в тендер_
@@ -190,7 +189,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 Заповнити unit.name для item
   [Arguments]  ${value}
   ${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
-  Log to console  ${value}
+  Log  ${value}
   Заповнити Поле  xpath=//*[@data-name='EDI']//input[not(contains(@type,'hidden'))]  ${value}
 
 
@@ -232,13 +231,28 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 
 Оголосити закупівлю
-  debug
   Wait Until Page Contains  Оголосити закупівлю
   Click Element  xpath=//*[@class="message-box"]//*[.='Так']
   Дочекатись Загрузки Сторінки (webclient)
   Підтвердити повідомлення про перевищення бюджету за необхідністю
   Підтвердити повідомлення про перевірку публікації документу за необхідністю
   Відмовитись у повідомленні про накладання ЕЦП на тендер
+  Пошук тендеру по title у webclient  ${tender title}
+
+
+
+Пошук тендеру по title у webclient
+  [Arguments]  ${tender title}
+  ${find tender field}  Set Variable  xpath=(//tr[@class=' has-system-column'])[1]/td[count(//div[contains(text(), 'Узагальнена назва закупівлі')]/ancestor::td[@draggable]/preceding-sibling::*)+1]//input
+  Scroll Page To Element XPATH  ${find tender field}
+  Click Element  ${find tender field}
+  Input Text  ${find tender field}  ${tender title}
+  ${get}  Get Element Attribute  ${find tender field}@value
+  ${status}  Run Keyword And Return Status  Should Be Equal  ${get}  ${tender title}
+  Run Keyword If  '${status}' == 'False'  Пошук тендеру по title у webclient  ${tender title}
+  Press Key  ${find tender field}  \\13
+  ${count tenders}  Get Matching Xpath Count  xpath=//div[contains(@class,'selectable')]/table//tr[contains(@class,'Row')]
+  Should Be Equal  ${count tenders}  1
 
 
 Підтвердити повідомлення про перевищення бюджету за необхідністю
@@ -259,9 +273,6 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Run Keyword If  '${status}' == 'True'  Run Keywords
   ...  Click Element  xpath=//*[@class="message-box"]//*[.='Ні']
   ...  AND  Дочекатись Загрузки Сторінки (webclient)
-
-
-
 
 
 Перейти на вкладку документи
@@ -322,6 +333,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 Заповнити title для tender
   [Arguments]  ${value}
+  Set Global Variable  ${tender title}  ${value}
   Заповнити Поле  xpath=//*[@data-name="TITLE"]//input  ${value}
 
 
@@ -345,7 +357,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 Заповнити valueTAX для tender
   [Arguments]  ${value}
-  Run Keyword If  '${value}' == 'True'  Click Element  xpath=(//*[@data-name="WITHVAT"]//span)[1]
+  Run Keyword If  '${value}' == 'True'  Wait Until Keyword Succeeds  10  2  Click Element  xpath=(//*[@data-name="WITHVAT"]//span)[1]
 
 
 Заповнити endDate для tender

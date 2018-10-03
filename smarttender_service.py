@@ -497,10 +497,8 @@ def convert_date_offset_naive(s):
 
 def convert_date(s):
     dt = parse(s, parserinfo(True, False))
-    if '+02' in s:
-        return dt.strftime('%Y-%m-%dT%H:%M:%S+02:00')
-    elif '+03' in s:
-        return dt.strftime('%Y-%m-%dT%H:%M:%S+03:00')
+    return dt.strftime('%Y-%m-%dT%H:%M:%S')
+
 
 
 def adapt_data(tender_data):
