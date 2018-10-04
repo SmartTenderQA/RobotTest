@@ -56,8 +56,8 @@ def tender_field_info(field):
         result = list.group('map')
         map = {
             "minimalStep.valueAddedTaxIncluded": "xpath=//*[@class='budget']",
-            "minimalStep.amount": "xpath=//*[@data-qa='min-step']/div[2]//span[4]",
-            "minimalStep.currency": "xpath=//*[@data-qa='min-step']/div[2]//span[5]",
+            "minimalStep.amount": "xpath=//*[@data-qa='budget-min-step']/div[2]//span[4]",
+            "minimalStep.currency": "xpath=//*[@data-qa='budget-min-step']/div[2]//span[5]",
         }
         return map[result].format(lot_id)
     elif "features" in field:
@@ -126,7 +126,7 @@ def tender_field_info(field):
             "enquiryPeriod.endDate": "xpath=//*[@data-qa='enquiry-period']//*[@data-qa='date-end']",
             "tenderPeriod.startDate": "xpath=//*[@data-qa='tendering-period']//*[@data-qa='date-start']",
             "tenderPeriod.endDate": "xpath=//*[@data-qa='tendering-period']//*[@data-qa='date-end']",
-            "minimalStep.amount": "xpath=//*[@data-qa='min-step']/div[2]//span[4]",
+            "minimalStep.amount": "xpath=//*[@data-qa='budget-min-step']/div[2]//span[4]",
             "status": "xpath=//*[@data-qa='status']",
             "qualificationPeriod.endDate": u"xpath=(//*[@data-qa='time-line']//*[contains(.,'Прекваліфікація')])[1]/following-sibling::div[1]/div/div",
             "auctionPeriod.startDate": "xpath=//*[@data-qa='auction-start']/div[2]/span",
@@ -182,8 +182,8 @@ def lot_field_info(field, id):
         "value.amount": "xpath=//*[@class='budget']",
         "value.currency": "xpath=//*[@class='budget']",
         "value.valueAddedTaxIncluded": "xpath=//*[@class='budget']",
-        "minimalStep.amount": "xpath=//*[@data-qa='min-step']/div[2]//span[4]",
-        "minimalStep.currency": "xpath=//*[@data-qa='min-step']/div[2]//span[5]",
+        "minimalStep.amount": "xpath=//*[@data-qa='budget-min-step']/div[2]//span[4]",
+        "minimalStep.currency": "xpath=//*[@data-qa='budget-min-step']/div[2]//span[5]",
         "minimalStep.valueAddedTaxIncluded": "xpath=//*[@class='budget']",
         "auctionPeriod.startDate": "xpath=//*[@data-qa='auction-start']/div[2]/span",
     }

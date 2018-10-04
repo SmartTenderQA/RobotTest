@@ -100,7 +100,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Wait Until Keyword Succeeds  120  3  Location Should Contain  /webclient/
 
 Дочекатись загрузки сторінки (webclient)
-  ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Element Is Visible  ${webClient loading}  5
+  ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Element Is Visible  ${webClient loading}  3
   Run Keyword If  "${status}" == "PASS"  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  ${webClient loading}  120
 
 
@@ -127,11 +127,13 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Заповнити minimalStep для tender           ${tender_data.data.minimalStep.amount}
   Заповнити valueTAX для tender              ${tender_data.data.value.valueAddedTaxIncluded}
   Заповнити endDate для tender               ${tender_data.data.tenderPeriod.endDate}
+  debug
   Заповнити items для tender                 ${tender_data.data['items']}
   Заповнити features для tender              ${tender_data.data['features']}
   Додати документ до тендара власником
   Натиснути додати тендер
   Оголосити закупівлю
+  [Return]  ${tender_uaid}
 
 
 Додати предмет в тендер_
@@ -184,7 +186,12 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   ...  ELSE  Run Keywords
   ...  Log To Console  'Заповнити scheme для item'
   ...  AND  debug
+  Вибрати пусте поле для доп. scheme
 
+Вибрати пусте поле для доп. scheme
+  Click Element  xpath=//*[@data-name="CLASSIFICATIONSCHEME"]//td[2]
+  Sleep  1
+  Click Element  xpath=//*[contains(@id,"DDD_L_LBT")]//td[not(contains(text(),' '))]
 
 Заповнити unit.name для item
   [Arguments]  ${value}
@@ -238,7 +245,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Підтвердити повідомлення про перевірку публікації документу за необхідністю
   Відмовитись у повідомленні про накладання ЕЦП на тендер
   Пошук тендеру по title у webclient  ${tender title}
-
+  Отримати tender_uaid щойно стореного тендера
 
 
 Пошук тендеру по title у webclient
@@ -251,8 +258,16 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   ${status}  Run Keyword And Return Status  Should Be Equal  ${get}  ${tender title}
   Run Keyword If  '${status}' == 'False'  Пошук тендеру по title у webclient  ${tender title}
   Press Key  ${find tender field}  \\13
+  Дочекатись Загрузки Сторінки (webclient)
   ${count tenders}  Get Matching Xpath Count  xpath=//div[contains(@class,'selectable')]/table//tr[contains(@class,'Row')]
   Should Be Equal  ${count tenders}  1
+
+
+Отримати tender_uaid щойно стореного тендера
+  ${find tender field}  Set Variable  xpath=(//tr[@class='evenRow rowselected'])[1]/td[count(//div[contains(text(), 'Номер тендеру')]/ancestor::td[@draggable]/preceding-sibling::*)+1]
+  Scroll Page To Element XPATH  ${find tender field}
+  ${uaid}  Get Text  ${find tender field}/a
+  Set Global Variable  ${tender_uaid}  ${uaid}
 
 
 Підтвердити повідомлення про перевищення бюджету за необхідністю
@@ -294,7 +309,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 
 Відкрити бланк для створення тендера
-  Перейти у розділ публічні закупівлі
+  Перейти у розділ публічні закупівлі (тестові)
   Натиснути пункт додати тендер
 
 
@@ -309,32 +324,32 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Sleep  1
 
 
-Перейти у розділ публічні закупівлі
-  Click Element  xpath=//*[@title="Публічні закупівлі"]
+Перейти у розділ публічні закупівлі (тестові)
+  Click Element  xpath=//*[@title="Публичные закупки (тестовые)"]
   Дочекатись Загрузки Сторінки (webclient)
 
 
 Натиснути пункт додати тендер
   Click Element  xpath=//*[contains(@title, 'Додати')]
   Дочекатись Загрузки Сторінки (webclient)
-  Wait Until Element Is Visible  //*[contains(@class, 'activeTab')]//*[contains(text(),'Тендер')]
+  Wait Until Element Is Visible  //*[contains(@class, 'activeTab')]//*[contains(text(),'Тестовий тендер')]
 
 
 Заповнити legalName для tender
   [Arguments]  ${value}
   ${selector}  Set Variable  xpath=(//*[@data-name="ORG_GPO_2"]//input)[1]
-  Input Text  ${selector}  ${value}
-  Press Key  ${selector}  \\09
-  sleep  1  #don't touch
-  Дочекатись Загрузки Сторінки (webclient)
-  Press Key  ${selector}  \\13
-  Дочекатись Загрузки Сторінки (webclient)
+  Заповнити Поле  ${selector}  ${value}
+  Sleep  1
+  ${text}  Get Text  xpath=(//*[@class="dhxcombo_cell_text"])[1]
+  ${status}  Run Keyword And Return Status  Should Be Equal  ${text}  ${value}
+  Run Keyword If  '${status}' == 'True'  Press Key  ${selector}  \\13
+  ...  ELSE  Заповнити legalName для tender  ${value}
 
 
 Заповнити title для tender
   [Arguments]  ${value}
   Set Global Variable  ${tender title}  ${value}
-  Заповнити Поле  xpath=//*[@data-name="TITLE"]//input  ${value}
+  Заповнити Поле  xpath=//*[@data-name="TITLE"]//input  ${tender title}
 
 
 Заповнити description для tender
@@ -447,6 +462,8 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 Перейти на вкладку якісних показників
   Scroll Page To Element XPATH  xpath=(//*[@data-name="ISCRITERIA"]//span)[1]
   Click Element  xpath=(//*[@data-name="ISCRITERIA"]//span)[1]
+  ${status}  Run Keyword And Return Status  Page Should Contain Element  xpath=(//*[@data-name="ISCRITERIA"]//span[contains(@class,'Checked')])[1]
+  Run Keyword If  '${status}' == 'False'  Перейти на вкладку якісних показників
   Wait Until Keyword Succeeds  10  2  Click Element  xpath=//*[contains(@id,'TabControl_T1')]//*[contains(text(),'Якісні показники')]
   Дочекатись Загрузки Сторінки (webclient)
 
@@ -465,8 +482,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Input Text  ${selector}  ${value}
   Sleep  .3
   Press Key  ${selector}  \\13
-  Wait Until Element Is Not Visible  ${webClient loading}  ${wait}
-  Sleep  .3
+  Дочекатись Загрузки Сторінки (webclient)
 
 
 OLD CODE TENDER
@@ -1730,7 +1746,6 @@ Ignore error
   ...  ELSE  Відкрити сторінку  award_claims  ${award_index}  ${award_index}   #...  ELSE  Відкрити сторінку award_claims  ${tender_uaid}  ${award_index}
   ${title}  Отримати title по complaintID із ЦБД  ${complaintID}  ${award_index}
   ${selector}  claim_field_info  ${field_name}  ${title}
-  Run Keyword If  "${TEST_NAME}" == "Відображення статусу 'ignored' вимоги про виправлення визначення переможця"  Оновити сторінку вимог
   Розгорнути потрібну скаргу  ${title}
   ${status}  Run Keyword And Return Status  Element Should Be Visible  ${selector}
   Run Keyword If  '${status}' == 'False'  Run Keywords
