@@ -8,7 +8,8 @@ Library	          Collections
 
 *** Variables ***
 ${tender_href}                          None
-${browserAlias}                        'main_browser'
+${browserAlias}                         main_browser
+${second browser}                       second browser
 ${synchronization}                      http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
 ${path to find tender}                  http://test.smarttender.biz/test-tenders/
 ${find tender field}                    xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]
@@ -90,14 +91,25 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Open Browser  ${USERS.users['${username}'].homepage}  ${USERS.users['${username}'].browser}  alias=${browserAlias}
   Set Window Size  1280  1024
   Run Keyword If  '${username}' != 'SmartTender_Viewer'  Login_  ${username}
-  Run Keyword If  '${username}' == 'SmartTender_Owner'  Перейти в особистий кабінет
+  Run Keyword If  '${username}' == 'SmartTender_Owner'  Run Keywords
+  ...  Відкрити Додаткове Вікно Браузера  ${username}
+  ...  AND  Перейти в особистий кабінет
 
+
+Відкрити Додаткове Вікно Браузера
+  [Arguments]  ${username}
+  [Documentation]  Відриваеться додаткове вікно браузера з аліасом tender page, після чого йде переключення на основне вікно браузера.
+  ...  Використовується наприклад, для паралельної роботи у веб-клієнті та на сторінці з тендером
+  Open Browser  ${USERS.users['${username}'].homepage}  ${USERS.users['${username}'].browser}  alias='tender page'
+  Set Window Size  1280  1024
+  Switch Browser  ${browserAlias}
 
 Перейти в особистий кабінет
   ${href}  Get Element Attribute  ${open login button}@href
   Go To  ${href}
   Дочекатись загрузки сторінки (webclient)
   Wait Until Keyword Succeeds  120  3  Location Should Contain  /webclient/
+
 
 Дочекатись загрузки сторінки (webclient)
   ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Element Is Visible  ${webClient loading}  1
@@ -203,7 +215,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 Заповнити unit.name для item
   [Arguments]  ${value}
-  ${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
+  #${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
   Log  ${value}
   Заповнити Поле  xpath=//*[@data-name='EDI']//input[not(contains(@type,'hidden'))]  ${value}
 
@@ -462,7 +474,6 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 Заповнити featureOf для feature
   [Arguments]  ${featureOf}
   log  ${featureOf}
-  log to console  Заповнити featureOf
   Run Keyword If  '${featureOf}' == 'lot'  Заповнити рівень привязки  Лот
   Run Keyword If  '${featureOf}' == 'tenderer'  Заповнити рівень привязки  Учасник тендеру
   Run Keyword If  '${featureOf}' == 'item'  Заповнити рівень привязки  Номенклатура
@@ -1587,6 +1598,11 @@ Click Input Enter Wait
   [Arguments]  ${USER}  ${TENDER_ID}
   Log To Console  Підготуватися до редагування
   debug
+  Swich Browser
+
+
+
+
   Go To  ${USERS.users['${USER}'].homepage}
   Click Element  LoginAnchor
   Wait Until Element Is Not Visible  ${webClient loading}  ${wait}

@@ -128,7 +128,7 @@ def tender_field_info(field):
             "tenderPeriod.endDate": "xpath=//*[@data-qa='tendering-period']//*[@data-qa='date-end']",
             "minimalStep.amount": "xpath=//*[@data-qa='budget-min-step']/div[2]//span[4]",
             "status": "xpath=//*[@data-qa='status']",
-            "qualificationPeriod.endDate": u"xpath=(//*[@data-qa='time-line']//*[contains(.,'Прекваліфікація')])[1]/following-sibling::div[1]/div/div",
+            "qualificationPeriod.endDate": u"xpath=//*[@data-qa='prequalification']//*[@data-qa='date-end']",
             "auctionPeriod.startDate": "xpath=//*[@data-qa='auction-start']/div[2]/span",
             "auctionPeriod.endDate": u"xpath=(//*[@data-qa='time-line']//*[contains(.,'Аукціон')])[1]/following-sibling::div[2]/div/div",
             "procurementMethodType": "xpath=//*[@data-qa='procedure-type']/div[2]/div",
