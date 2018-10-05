@@ -100,7 +100,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Wait Until Keyword Succeeds  120  3  Location Should Contain  /webclient/
 
 Дочекатись загрузки сторінки (webclient)
-  ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Element Is Visible  ${webClient loading}  3
+  ${status}  ${message}  Run Keyword And Ignore Error  Wait Until Element Is Visible  ${webClient loading}  1
   Run Keyword If  "${status}" == "PASS"  Run Keyword And Ignore Error  Wait Until Element Is Not Visible  ${webClient loading}  120
 
 
@@ -127,13 +127,21 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Заповнити minimalStep для tender           ${tender_data.data.minimalStep.amount}
   Заповнити valueTAX для tender              ${tender_data.data.value.valueAddedTaxIncluded}
   Заповнити endDate для tender               ${tender_data.data.tenderPeriod.endDate}
-  debug
+  Заповнити lots для tender                  ${tender_data.data['lots']}
   Заповнити items для tender                 ${tender_data.data['items']}
   Заповнити features для tender              ${tender_data.data['features']}
   Додати документ до тендара власником
   Натиснути додати тендер
   Оголосити закупівлю
   [Return]  ${tender_uaid}
+
+
+Додати лот до тендера
+  [Arguments]  ${lot}
+  Заповнити title для lot                    ${lot.title}
+  Заповнити description для lot              ${lot.description}
+  Заповнити amount для lot                   ${lot.value.amount}
+  Заповнити minimalStep для lot              ${lot.minimalStep.amount}
 
 
 Додати предмет в тендер_
@@ -260,7 +268,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Press Key  ${find tender field}  \\13
   Дочекатись Загрузки Сторінки (webclient)
   ${count tenders}  Get Matching Xpath Count  xpath=//div[contains(@class,'selectable')]/table//tr[contains(@class,'Row')]
-  Should Be Equal  ${count tenders}  1
+  Run Keyword And Ignore Error  Should Be Equal  ${count tenders}  1
 
 
 Отримати tender_uaid щойно стореного тендера
@@ -359,15 +367,14 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 Заповнити amount для tender
   [Arguments]  ${value}
-  ${step_rate}  Convert To String  ${value}
-  Заповнити Поле  xpath=//*[@data-name="INITAMOUNT"]//input   ${step_rate}
-  Set Global Variable   ${step_rate}
-
+  ${value}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="INITAMOUNT"]//input  ${value}
 
 Заповнити minimalStep для tender
   [Arguments]  ${value}
-  ${value}  Convert To String  ${value}
-  Заповнити Поле  xpath=//*[@data-name="MINSTEP"]//input  ${value}
+  ${step_rate}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="MINSTEP"]//input   ${step_rate}
+  Set Global Variable   ${step_rate}
 
 
 Заповнити valueTAX для tender
@@ -381,14 +388,44 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Заповнити Поле  xpath=//*[@data-name="D_SROK"]//input  ${value}
 
 
+Заповнити lots для tender
+  [Arguments]  ${lots}
+  Включити чек-бокс мультилот
+  :FOR  ${lot}  in  @{lots}
+  \  Додати лот до тендера  ${lot}
+
+
+Заповнити title для lot
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="LOT_TITLE"]//input  ${value}
+
+
+Заповнити description для lot
+  [Arguments]  ${value}
+  Заповнити Поле  xpath=//*[@data-name="LOT_DESCRIPTION"]//textarea  ${value}
+
+
+Заповнити amount для lot
+  [Arguments]  ${value}
+  ${value}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="LOT_INITAMOUNT"]//input  ${value}
+
+
+Заповнити minimalStep для lot
+  [Arguments]  ${value}
+  ${step_rate}  Convert To String  ${value}
+  Заповнити Поле  xpath=//*[@data-name="LOT_MINSTEP"]//input   ${step_rate}
+  Set Global Variable   ${step_rate}
+
+
 Заповнити items для tender
   [Arguments]  ${items}
   log  ${items}
-  ${index}  Set Variable  ${0}
+  #${index}  Set Variable  ${0}
   :FOR  ${item}  in  @{items}
-  \  Run Keyword If  '${index}' != '0'  Click Element  xpath=(//*[@title="Додати"])[2]
+  \  Click Element  xpath=//*[@data-name="GRID_ITEMS_HIERARCHY"]//*[@title="Додати"]
   \  smarttender.Додати предмет в тендер_  ${item}
-  \  ${index}  Set Variable  ${index + 1}
+  #\  ${index}  Set Variable  ${index + 1}
 
 Заповнити features для tender
   [Arguments]  ${features}
@@ -400,6 +437,14 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   \  Відкрити бланк для додавання якісних показників
   \  Sleep  1
   \  Додати неціновий показник  ${feature}
+
+
+Включити чек-бокс мультилот
+  Scroll Page To Element XPATH  xpath=(//*[@data-name="ISMULTYLOT"]//span)[1]
+  Click Element  xpath=(//*[@data-name="ISMULTYLOT"]//span)[1]
+  ${status}  Run Keyword And Return Status  Page Should Contain Element  xpath=(//*[@data-name="ISMULTYLOT"]//span[contains(@class,'Checked')])[1]
+  Run Keyword If  '${status}' == 'False'  Включити чек-бокс мультилот
+  Дочекатись Загрузки Сторінки (webclient)
 
 
 
@@ -417,7 +462,8 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 Заповнити featureOf для feature
   [Arguments]  ${featureOf}
   log  ${featureOf}
-  Run Keyword If  '${featureOf}' == 'lot'  Заповнити рівень привязки  Учасник тендеру
+  log to console  Заповнити featureOf
+  Run Keyword If  '${featureOf}' == 'lot'  Заповнити рівень привязки  Лот
   Run Keyword If  '${featureOf}' == 'tenderer'  Заповнити рівень привязки  Учасник тендеру
   Run Keyword If  '${featureOf}' == 'item'  Заповнити рівень привязки  Номенклатура
 
@@ -692,7 +738,7 @@ waiting_for_synch
   [Documentation]  Змінює значення поля fieldname на fieldvalue для лоту tender_uaid.
   Pass Execution If  '${role}'=='provider' or '${role}'=='viewer'  Данний користувач не може вносити зміни в аукціон
   ${status}=  Run Keyword And Return Status  Location Should Contain  webclient
-  Run Keyword If  '${status}' == '${False}'  smarttender.Підготуватися до редагування_
+  Run Keyword If  '${status}' == '${False}'  smarttender.Підготуватися до редагування_  ${user}  ${tenderId}
   Змінити дані тендера_  ${field}  ${value}
 
 Отримати кількість документів в тендері
@@ -1539,6 +1585,8 @@ Click Input Enter Wait
 
 Підготуватися до редагування_
   [Arguments]  ${USER}  ${TENDER_ID}
+  Log To Console  Підготуватися до редагування
+  debug
   Go To  ${USERS.users['${USER}'].homepage}
   Click Element  LoginAnchor
   Wait Until Element Is Not Visible  ${webClient loading}  ${wait}

@@ -497,7 +497,7 @@ def convert_date_offset_naive(s):
 
 def convert_date(s):
     dt = parse(s, parserinfo(True, False))
-    return dt.strftime('%Y-%m-%dT%H:%M:%S')
+    return dt.strftime('%Y-%m-%dT%H:%M:%S+03:00')
 
 
 
@@ -513,6 +513,8 @@ def adapt_data(tender_data):
             item.unit['name'] = u"усл."
         elif item.unit['name'] == u"метри квадратні":
             item.unit['name'] = u"м.кв."
+        elif item.unit['name'] == u"упаковка":
+            item.unit['name'] = u"упаков"
     for item in tender_data.data['items']:
         if item.deliveryAddress['region'] == u"місто Київ":
             item.deliveryAddress['region'] = u"Київська обл."
