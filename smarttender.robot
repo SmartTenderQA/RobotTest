@@ -216,9 +216,8 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
 
 Заповнити unit.name для item
   [Arguments]  ${value}
-  #${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
+  ${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
   Log  ${value}
-  debug
   Заповнити Поле  xpath=//*[@data-name='EDI']//input[not(contains(@type,'hidden'))]  ${value}
 
 
