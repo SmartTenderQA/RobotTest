@@ -178,7 +178,7 @@ def proposal_field_info(field):
 def lot_field_info(field, id):
     map = {
         "title": "xpath=//*[@data-qa='header-block']//*[contains(text(), '{0}')]",
-        "description": "xpath=//*[contains(text(), '{0}')]", #/ancestor::div[1]//*[@data-qa='description']
+        "description": "xpath=//*[contains(text(),'{0}')]/ancestor::div[1]//*[@data-qa='lot-description']
         "value.amount": "xpath=//*[@class='budget']",
         "value.currency": "xpath=//*[@class='budget']",
         "value.valueAddedTaxIncluded": "xpath=//*[@class='budget']",
@@ -513,8 +513,8 @@ def adapt_data(tender_data):
             item.unit['name'] = u"усл."
         elif item.unit['name'] == u"метри квадратні":
             item.unit['name'] = u"м.кв."
-        elif item.unit['name'] == u"упаковка":
-            item.unit['name'] = u"упаков"
+        #elif item.unit['name'] == u"упаковка":
+        #    item.unit['name'] = u"упаков"
     for item in tender_data.data['items']:
         if item.deliveryAddress['region'] == u"місто Київ":
             item.deliveryAddress['region'] = u"Київська обл."

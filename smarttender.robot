@@ -8,8 +8,8 @@ Library	          Collections
 
 *** Variables ***
 ${tender_href}                          None
-${browserAlias}                         main_browser
-${second browser}                       second browser
+${browserAlias}                         'main_browser'
+${second browser}                       'second browser'
 ${synchronization}                      http://test.smarttender.biz/ws/webservice.asmx/ExecuteEx?calcId=_SYNCANDMOVE&args=&ticket=&pureJson=
 ${path to find tender}                  http://test.smarttender.biz/test-tenders/
 ${find tender field}                    xpath=//input[@placeholder="Введіть запит для пошуку або номер тендеру"]
@@ -103,6 +103,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Open Browser  ${USERS.users['${username}'].homepage}  ${USERS.users['${username}'].browser}  alias='tender page'
   Set Window Size  1280  1024
   Switch Browser  ${browserAlias}
+
 
 Перейти в особистий кабінет
   ${href}  Get Element Attribute  ${open login button}@href
@@ -217,6 +218,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   [Arguments]  ${value}
   #${value}  smarttender_service.convert_unit_to_smarttender_format  ${value}
   Log  ${value}
+  debug
   Заповнити Поле  xpath=//*[@data-name='EDI']//input[not(contains(@type,'hidden'))]  ${value}
 
 
@@ -266,6 +268,7 @@ ${add files tab}                        xpath=//li[contains(@class, 'dxtc-tab')]
   Відмовитись у повідомленні про накладання ЕЦП на тендер
   Пошук тендеру по title у webclient  ${tender title}
   Отримати tender_uaid щойно стореного тендера
+  Switch Browser  ${second browser}
 
 
 Пошук тендеру по title у webclient
@@ -722,7 +725,9 @@ waiting_for_synch
   ...  ELSE  Reload Page
   Should Be Equal  ${status}  Pass
   Close Browser
-  Switch Browser  ${browserAlias}
+  Run Keyword If  '${role}' == 'tender_owner'  Run Keyword And Ignore Error
+  ...  Switch Browser  ${second browser}
+  ...  ELSE  Switch Browser  ${browserAlias}
   Reload Page
 
 Отримати інформацію із тендера
@@ -1598,7 +1603,7 @@ Click Input Enter Wait
   [Arguments]  ${USER}  ${TENDER_ID}
   Log To Console  Підготуватися до редагування
   debug
-  Swich Browser
+  Swich Browser  ${browserAlias}
 
 
 
