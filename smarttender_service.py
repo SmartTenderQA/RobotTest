@@ -30,8 +30,8 @@ def tender_field_info(field):
         result = list.group('map')
         map = {
             "description": "xpath=(//*[@data-qa='value-list']/div/div[contains(@class,'lot')])[{0}]",
-            "deliveryDate.startDate": "xpath=(//*[@data-qa='date-start'])[{0}]",
-            "deliveryDate.endDate": "xpath=(//*[@data-qa='date-end'])[{0}]",
+            "deliveryDate.startDate": "xpath=(//*[@data-qa='nomenclature-block']//*[@data-qa='date-start'])[{0}]",
+            "deliveryDate.endDate": "xpath=(//*[@data-qa='nomenclature-block']//*[@data-qa='date-end'])[{0}]",
             "deliveryLocation.latitude": "xpath=(//*[@data-qa='value-list']//a)[{0}]@href",
             "deliveryLocation.longitude": "xpath=(//*[@data-qa='value-list']//a)[{0}]@href",
             "classification.scheme": "xpath=(//*[@data-qa='value-list'])[{0}]//div[@class='nomenclature'][1]",
