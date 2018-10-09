@@ -513,8 +513,8 @@ def adapt_data(tender_data):
             item.unit['name'] = u"усл."
         elif item.unit['name'] == u"метри квадратні":
             item.unit['name'] = u"м.кв."
-        elif item.unit['name'] == u"упаковка":
-            item.unit['name'] = u"шт"
+        #elif item.unit['name'] == u"упаковка":
+            #item.unit['name'] = u"шт"
     for item in tender_data.data['items']:
         if item.deliveryAddress['region'] == u"місто Київ":
             item.deliveryAddress['region'] = u"Київська обл."
