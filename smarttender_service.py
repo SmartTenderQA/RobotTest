@@ -497,8 +497,11 @@ def convert_date_offset_naive(s):
 
 def convert_date(s):
     dt = parse(s, parserinfo(True, False))
-    return dt.strftime('%Y-%m-%dT%H:%M:%S+03:00')
-
+    month = s[3:5]
+    if month == '11':
+        return dt.strftime('%Y-%m-%dT%H:%M:%S+02:00')
+    else:
+        return dt.strftime('%Y-%m-%dT%H:%M:%S+03:00')
 
 
 def adapt_data(tender_data):
