@@ -307,7 +307,7 @@ ${delete feature btn}                   xpath=//*[@data-name="GRID_CRITERIA"]//*
   ...  AND  Дочекатись Загрузки Сторінки (webclient)
 
 Відмовитись у повідомленні про накладання ЕЦП на тендер
-  ${status}  Run Keyword And Return Status  Wait Until Page Contains  Накласти ЕЦП на тендер?  10
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains  Накласти ЕЦП на тендер?  3
   Run Keyword If  '${status}' == 'True'  Run Keywords
   ...  Click Element  xpath=//*[@id="IMMessageBoxBtnNo"]
   ...  AND  Дочекатись Загрузки Сторінки (webclient)
@@ -315,7 +315,7 @@ ${delete feature btn}                   xpath=//*[@data-name="GRID_CRITERIA"]//*
 
 Продовжити Період Подачі Пропозицій За Необхідністью
   ${status}  Run Keyword And Return Status
-  ...  Wait Until Page Contains  необхідно подовжити період прийому пропозицій  2
+  ...  Wait Until Page Contains  необхідно подовжити період прийому пропозицій  3
   Run Keyword If  '${status}' == 'True'  Run Keywords
   ...  Click Element  xpath=//*[@id="IMMessageBoxBtnOK"]
   ...  AND  Дочекатись Загрузки Сторінки (webclient)
@@ -363,7 +363,7 @@ ${delete feature btn}                   xpath=//*[@data-name="GRID_CRITERIA"]//*
 
 
 Перейти у розділ публічні закупівлі (тестові)
-  Click Element  xpath=//*[@title="Публичные закупки (тестовые)"]
+  Click Element  xpath=(//*[@title="Публичные закупки (тестовые)"])[1]
   Дочекатись Загрузки Сторінки (webclient)
 
 
@@ -545,7 +545,7 @@ ${delete feature btn}                   xpath=//*[@data-name="GRID_CRITERIA"]//*
 
 Відкрити бланк для додавання значення критерію
   Wait Until Keyword Succeeds  10  2  Click Element  xpath=//*[@data-name="GRID_CRITERIONVALUES"]//*[@title='Додати']
-  Wait Until Page Contains Element  xpath=//*[@data-name="GRID_CRITERIONVALUES"]//td[@class="cellselected"]
+  Wait Until Page Contains Element  xpath=//*[@data-name="GRID_CRITERIONVALUES"]//td[@class="cellselected"]  20
 
 
 Перейти на вкладку якісних показників
@@ -569,11 +569,8 @@ ${delete feature btn}                   xpath=//*[@data-name="GRID_CRITERIA"]//*
   Sleep  .5
   Input Text  ${selector}  ${value}
   Sleep  .5
-  Press Key  ${selector}  \\13
+  Press Key  ${selector}  \\09
   Sleep  1
-  ${text}  Get Element Attribite  ${selector}@value
-  ${status}  Run Keyword And Return Status  Should Be Equal  ${text}  ${value}
-  Run Keyword If  '${status}' == 'False'  Заповнити Поле  ${selector}  ${value}
 
 
 Завантажити документ в лот
@@ -589,7 +586,7 @@ ${delete feature btn}                   xpath=//*[@data-name="GRID_CRITERIA"]//*
   [Arguments]   ${filepath}  ${lot_id}
   Click Element  xpath=//*[@data-name="TREEDOCS"]//td[contains(text(),'${lot_id}')]
   Sleep  .5
-  Click Element  xpath=//*[@data-name="BTADDATTACHMENT"]/div
+  Wait Until Keyword Succeeds  10  2  Click Element  xpath=//*[@data-name="BTADDATTACHMENT"]/div
   Дочекатись Загрузки Сторінки (webclient)
   Wait Until Page Contains Element  xpath=//*[@type='file'][1]
   Choose File  xpath=//*[@type='file'][1]  ${filepath}
@@ -618,6 +615,7 @@ ${delete feature btn}                   xpath=//*[@data-name="GRID_CRITERIA"]//*
   ${new_lot}  Get From Dictionary  ${lot}  data
   Додати лот до тендера  ${new_lot}
   Click Element  ${add item btn}
+  Sleep  1
   Додати предмет в тендер_  ${item}
   Закрити вікно редагування (webclient)
 
@@ -855,7 +853,7 @@ waiting_for_synch
   [Arguments]  ${username}  ${tender_uaid}  ${feature_id}  ${field_name}
   [Documentation]  Отримати значення поля field_name з нецінового показника з feature_id в описі для тендера tender_uaid.
   ...  [Повертає] feature['field_name']
-  Run Keyword If  '${feature_id[0]}' != 'f' Відкрити сторінку с потрібним лотом за необхідністю  ${feature_id}
+  Відкрити сторінку с потрібним лотом за необхідністю  ${feature_id}
   ${response}=  Отримати та обробити дані нецінового показника  ${field_name}  ${feature_id}
   Повернутися до тендеру від лоту за необхідністю
   [Return]  ${response}
@@ -886,7 +884,7 @@ waiting_for_synch
   ${first letter}  Set Variable  ${id[0]}
   ${title}  Run Keyword if  "${first letter}" == "i"  Get title from items  ${id}  ${data}
   ...  ELSE IF  "${first letter}" == "l"  Set Variable  ${id}
-  ...  ELSE IF  "${first letter}" == "f"  Get title from features  ${id}  ${data}
+  ...  ELSE IF  "${first letter}" == "f"  Get title from feature  ${id}  ${data}
   [Return]  ${title}
 
 
@@ -901,33 +899,22 @@ Get title from items
   [Return]  ${title}
 
 
-Get title from features
+Get title from feature
   [Arguments]  ${id}  ${data}
-  log to console  Get title from features
-  debug
   ${n}  get length  ${data['data']['features']}
   :FOR  ${i}  in range  ${n}
   \  ${status}  Run Keyword If  "${id}" in "${data['data']['features'][${i}]['title']}"  Set Variable  Pass
-  \  Run Keyword If  "${status}" == "Pass"  ${relatedLot}  Get relatedLot for feature  ${i}  ${id}  ${data}
+  \  ${relatedItem}  Run Keyword If  "${status}" == "Pass"  Set Variable  ${data['data']['features'][${i}]['relatedItem']}
+  \  ${relatedLot}  Get relatedLot for item  ${data}  ${relatedItem}
   \  ${title}  Get title by lotid  ${data}  ${relatedLot}
   \  Run Keyword If  "${status}" == "Pass"  Exit For Loop
-  [Return]  ${title}
-
-
-Get relatedLot for feature
-  [Arguments]  ${i}  ${id}  ${data}
-  ${lot status}  ${relatedLot}  Run Keyword And Return Status  Get From Dictionary  ${data['data']['features'][${i}]}  relatedLot
-  ${item status}  ${relatedItem}  Run Keyword And Return Status  Set Variable  ${data['data']['features'][${i}]['relatedItem']}
-  Run Keyword If  '${lot status}' == 'PASS'  [Return]  ${relatedLot}
-  ${relatedLot}  Run Keyword If  '${item status}' == 'PASS'  Get relatedLot for item  ${relatedItem}  ${data}
-  Run Keyword If  '${item status}' == 'PASS'  [Return]  ${relatedLot}
 
 
 Get relatedLot for item
-  [Arguments]  ${id}  ${data}
+  [Arguments]  ${data}  ${relatedItem}
   ${n}  get length  ${data['data']['items']}
   :FOR  ${i}  in range  ${n}
-  \  ${status}  Run Keyword If  "${id}" in "${data['data']['items'][${i}]['id']}"  Set Variable  Pass
+  \  ${status}  Run Keyword If  "${relatedItem}" in "${data['data']['items'][${i}]['id']}"  Set Variable  Pass
   \  ${relatedLot}  Run Keyword If  "${status}" == "Pass"  Set Variable  ${data['data']['items'][${i}]['relatedLot']}
   \  Run Keyword If  "${status}" == "Pass"  Exit For Loop
   [Return]  ${relatedLot}
