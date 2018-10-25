@@ -1615,13 +1615,14 @@ Get title by lotid
   Select Frame  css=#widgetIframe
 
 
-Відкрити сторінку awards
+Розгорнути інформацію про учасника за потреби
   [Arguments]  ${tender_uaid}=None  ${index}=None
-  Click Element  xpath=//*[@data-qa='qualification-info']//*[@class='expander-title']
-  Wait Until Page Contains Element  xpath=//*[@data-qa='qualification-expanded-info']
-  ${decision status}  Run Keyword And Return Status
-  ...  Wait Until Element Is Visible  xpath=//*[@data-qa="qualification-expanded-info"]//div/i  2
-  Run Keyword If  '${decision status}' == 'True'  Run Keywords
+  ${status}  Run Keyword And Return Status  Wait Until Page Contains Element  xpath=//*[@data-qa='qualification-expanded-info']  2
+  Run Keyword If  '${status}' == 'False'  Run Keywords
+  ...  Click Element  xpath=//*[@data-qa='qualification-info']//*[@class='expander-title']
+  ...  AND  Wait Until Page Contains Element  xpath=//*[@data-qa='qualification-expanded-info']
+  ${decision status}  Run Keyword And Return Status  Wait Until Element Is Visible  xpath=//*[@data-qa="qualification-expanded-info"]//div/i  2
+  Run Keyword If  '${decision status}' == 'False'  Run Keywords
   ...  Click Element  xpath=//*[@data-qa="qualification-expanded-info"]//div/i
   ...  AND  Wait Until Element Is Visible  xpath=//*[@data-qa="qualification-expanded-info"]//*[@data-qa="file-name"]  4
   #${href}=  Get Element Attribute  css=a.att-link[href]@href
@@ -1697,7 +1698,7 @@ Click Input Enter Wait
 
 Отримати дані на сторінці з тендером
   [Arguments]  ${fieldname}
-  Run Keyword If  'awards' in '${fieldname}'  Відкрити сторінку awards
+  Run Keyword If  'awards' in '${fieldname}'  Розгорнути інформацію про учасника за потреби
   Змінити мову  ${fieldname}
   Set Window Size  1280  1024
   ${selector}=  tender_field_info  ${fieldname}
