@@ -1619,6 +1619,11 @@ Get title by lotid
   [Arguments]  ${tender_uaid}=None  ${index}=None
   Click Element  xpath=//*[@data-qa='qualification-info']//*[@class='expander-title']
   Wait Until Page Contains Element  xpath=//*[@data-qa='qualification-expanded-info']
+  ${decision status}  Run Keyword And Return Status
+  ...  Wait Until Element Is Visible  xpath=//*[@data-qa="qualification-expanded-info"]//div/i  2
+  Run Keyword If  '${decision status}' == 'True'  Run Keywords
+  ...  Click Element  xpath=//*[@data-qa="qualification-expanded-info"]//div/i
+  ...  AND  Wait Until Element Is Visible  xpath=//*[@data-qa="qualification-expanded-info"]//*[@data-qa="file-name"]  4
   #${href}=  Get Element Attribute  css=a.att-link[href]@href
   #Go To  ${href}
   #Wait Until Page Contains  Документи
@@ -1692,6 +1697,7 @@ Click Input Enter Wait
 
 Отримати дані на сторінці з тендером
   [Arguments]  ${fieldname}
+  Run Keyword If  'awards' in '${fieldname}'  Відкрити сторінку awards
   Змінити мову  ${fieldname}
   Set Window Size  1280  1024
   ${selector}=  tender_field_info  ${fieldname}
